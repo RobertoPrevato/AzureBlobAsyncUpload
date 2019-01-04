@@ -29,8 +29,7 @@ last one to commit the file. My code intentionally doesn't start parallel web re
 because it was designed having in mind a scenario where many files are read from file system and uploaded concurrently (concurrent upload of different files,
 not concurrent uploads of _chunks_ of every single file!).
 
-Moreover, concurrent chunk uploads without limits would cause to handle more bytes in memory at the same time - potentially defeating the purpose of chunking big files
-on the client side. There is no perfect 'one-size-fits-all' solution.
+Moreover, concurrent chunk uploads, or concurrent file uploads without limits, could cause to handle too many bytes in memory at the same time - potentially defeating the purpose of chunking big files
+on the client side. For this reason, it is recommended to use a [semaphore](https://docs.python.org/3/library/asyncio-sync.html#semaphore), to limit the concurrency of upload operations. There is no perfect 'one-size-fits-all' solution.
 
-If you need a scenario where you handle few files at a given time, then you should change the code to support parallel uploads
-of chunks of every single file.
+If you need a scenario where you handle a few files at a given time, then you could benefit, from changing the code to support parallel uploads of chunks of every single file.
