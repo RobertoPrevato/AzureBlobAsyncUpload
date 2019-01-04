@@ -12,7 +12,13 @@ from utils.files import get_file_name_from_path, get_best_mime_type, get_file_ex
 logger = logging.getLogger('blobs-client')
 
 
-class UploadFailedException(Exception):
+class MissingOrEmpty(Exception):
+
+    def __init__(self, parameter_name):
+        super().__init__(f'Missing or empty {parameter_name}')
+
+
+class UploadFailed(Exception):
 
     def __init__(self, message: str):
         super().__init__('Upload failed: ' + message)
@@ -41,7 +47,7 @@ class BlobsClient:
     @staticmethod
     def _validate_file_path(file_path: str):
         if not file_path:
-            raise ValueError('missing or empty file path')
+            raise MissingOrEmpty('file path')
 
         path = Path(file_path)
 
@@ -61,6 +67,9 @@ class BlobsClient:
                           assigned_file_name: str = None,
                           chunk_size: int = 4 * 1024 * 1024):
         self._validate_file_path(file_path)
+
+        if not container_name:
+            raise MissingOrEmpty('container name')
 
         file_size = os.path.getsize(file_path)
         file_type = get_best_mime_type(file_path)
@@ -109,7 +118,7 @@ class BlobsClient:
                                                   })
             if response.status != 201:
                 text = await response.text()
-                raise UploadFailedException(text)
+                raise UploadFailed(text)
 
             bytes_uploaded += chunk_len
 
@@ -145,6 +154,6 @@ class BlobsClient:
 
         if response.status != 201:
             text = await response.text()
-            raise UploadFailedException('upload commit failed' + text)
+            raise UploadFailed('upload commit failed' + text)
 
         logger.debug(f'completed the upload of {file_name}')
