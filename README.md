@@ -1,6 +1,7 @@
-# Azure Storage Blob Service, upload with asyncio
-This repository contains an example to upload files of any size to Azure Storage Blob Service, using its REST api with `asyncio` and `aiohttp`.
+# Azure Storage Blob Service, upload and download with asyncio
+This repository contains code to download and upload files of any size to Azure Storage Blob Service, using its REST api with `asyncio` and `aiohttp`.
 This code was shared, in relation to [this thread in GitHub](https://github.com/Azure/azure-storage-python/issues/534#issuecomment-451260323).
+In this context, the official Python SDK is used only to generate shared access signatures.
 
 ## Example of concurrent files upload
 
