@@ -33,3 +33,29 @@ Moreover, concurrent chunk uploads, or concurrent file uploads without limits, c
 on the client side. For this reason, it is recommended to use a [semaphore](https://docs.python.org/3/library/asyncio-sync.html#semaphore), to limit the concurrency of upload operations. There is no perfect 'one-size-fits-all' solution.
 
 If you need a scenario where you handle a few files at a given time, then you could benefit, from changing the code to support parallel uploads of chunks of every single file.
+
+## Example to download files in chunks
+
+To download a file saving it to file system:
+```python
+async with SSLClientSession() as http_client:
+    client = BlobsClient(http_client, BlockBlobService(ACCOUNT_NAME, ACCOUNT_KEY))
+    
+    source_container_name = 'test'
+    blob_name = 'some_blob_in_container.txt'
+    await client.download_file(source_container_name, blob_name) 
+
+```
+
+To download a file handling chunks in memory:
+```python
+async with SSLClientSession() as http_client:
+    client = BlobsClient(http_client, BlockBlobService(ACCOUNT_NAME, ACCOUNT_KEY))
+    
+    source_container_name = 'test'
+    blob_name = 'some_blob_in_container.txt'
+
+    async for chunk in client.read_blob(source_container_name, blob_name):
+        # handle chunk in memory
+        pass  
+```

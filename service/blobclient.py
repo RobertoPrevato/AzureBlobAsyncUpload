@@ -18,10 +18,20 @@ class MissingOrEmpty(Exception):
         super().__init__(f'Missing or empty {parameter_name}')
 
 
-class UploadFailed(Exception):
+class BlobClientException(Exception):
+    pass
+
+
+class UploadFailed(BlobClientException):
 
     def __init__(self, message: str):
         super().__init__('Upload failed: ' + message)
+
+
+class DownloadFailed(BlobClientException):
+
+    def __init__(self, message: str):
+        super().__init__('Download failed: ' + message)
 
 
 class BlobsClient:
@@ -60,6 +70,54 @@ class BlobsClient:
 
         if path.is_symlink():
             raise ValueError(f'given file path {file_path} refers to a sym link')
+
+    async def download_file(self,
+                            container_name: str,
+                            blob_name: str,
+                            destination_file_path: str = None,
+                            chunk_size=4 * 1024 * 1024,
+                            force: bool = False):
+        if not destination_file_path:
+            destination_file_path = blob_name
+
+        if not force and os.path.exists(destination_file_path):
+            raise ValueError(f'A file exists at {destination_file_path}')
+
+        with open(destination_file_path, mode='wb') as output_file:
+            async for chunk in self.read_blob(container_name, blob_name, chunk_size):
+                output_file.write(chunk)
+
+        logging.debug(f'finished downloading blob {blob_name}')
+
+    async def read_blob(self,
+                        container_name: str,
+                        blob_name: str,
+                        chunk_size=4 * 1024 * 1024):
+        token = self.get_token(container_name, blob_name)
+        file_url = self.base_url + container_name + '/' + blob_name + '?' + token
+        current_index = 0
+
+        while True:
+            response = await self.http_client.get(file_url, headers={
+                'x-ms-range': f'bytes={current_index}-{chunk_size + current_index}'
+            })
+
+            if response.status == 206:
+                body = await response.content.read()
+
+                logging.debug(f'downloaded chunk of blob {blob_name}')
+
+                yield body
+
+                body_length = len(body)
+
+                if body_length < chunk_size:
+                    break
+
+                current_index += body_length
+            else:
+                text = await response.text()
+                raise DownloadFailed(text)
 
     async def upload_file(self,
                           file_path: str,
