@@ -103,7 +103,7 @@ class BlobsClient:
             })
 
             if response.status == 416 and current_index > 0:
-                # if we get here, it means the blob is exactly long == chunk_size
+                # if we get here, it means the blob length is a multiple of chunk size
                 return
 
             if response.status == 206:
