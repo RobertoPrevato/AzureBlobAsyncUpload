@@ -102,6 +102,10 @@ class BlobsClient:
                 'x-ms-range': f'bytes={current_index}-{chunk_size + current_index}'
             })
 
+            if response.status == 416 and current_index > 0:
+                # if we get here, it means the blob is exactly long == chunk_size
+                return
+
             if response.status == 206:
                 body = await response.content.read()
 
