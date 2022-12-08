@@ -7,7 +7,7 @@ azure-common==1.1.16
 azure-storage-blob==1.4.0
 azure-storage-common==1.4.0
 cchardet==2.1.4
-certifi==2018.11.29
+certifi==2022.12.7
 cffi==1.11.5
 chardet==3.0.4
 cryptography==2.4.2
